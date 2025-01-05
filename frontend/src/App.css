@@ -1,0 +1,23 @@
+#root {
+  background-color: rgb(26, 29, 30);
+}
+
+#App {
+  display: inline-flex;
+  background-color: rgb(26, 29, 30);
+  width: 100vw;
+  height: 100vh;
+  color: white;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.box.has-advanced-upload {
+  background-color: white;
+  outline: 2px dashed black;
+  outline-offset: -10px;
+}
+.box.has-advanced-upload .box__dragndrop {
+  display: inline;
+}

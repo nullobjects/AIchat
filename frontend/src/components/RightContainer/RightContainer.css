@@ -1,0 +1,132 @@
+#Right {
+    display: flex;
+    background-color: rgb(34, 37, 38);
+    flex: 1 1 auto;
+    margin-right: 10px;
+    height: calc(100vh - 20px);
+    border-radius: 0.5rem;
+    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+}
+
+#chatbox_container {
+    display: flex;
+    width: 100%;
+    height: calc(100% - 2rem);
+    overflow-y: scroll;
+    overflow-x: hidden;
+    justify-content: center;
+}
+
+#chatbox {
+    display: flex;
+    width: 100%;
+    max-width: 44rem;
+    margin-left: 16px;
+    flex-direction: column;
+}
+#input_container {
+    display: flex;
+    position: relative;
+    width: calc(100% - 2rem);
+    max-width: 50rem;
+    padding: 4px;
+    background-color: rgb(45,45,45);
+    position: relative;
+    border-radius: 2rem;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+}
+
+#input_container > input {
+    height: 2.75rem;
+    top: 100%;
+}
+
+#input_container > input:first-child {
+    opacity: 0.5;
+}
+
+#input_container > input:first-child:hover {
+    opacity: 0.8;
+}
+
+#input_container > input:last-child {
+    opacity: 0.2;
+}
+
+#input_inner {
+    width: 100%;
+    max-width: 46rem;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border: none;
+    resize: none;
+    font-size: 16px;
+    outline: none;
+    max-height: 200px;
+    font-family: 'Open Sans', Arial, sans-serif;
+    line-height: 1.5;
+    box-sizing: border-box;
+    height: 44px;
+    background-color: transparent;
+    color: white;
+}
+
+#input_inner::placeholder {
+    color: #888;
+}
+
+/* ===== Scrollbar CSS ===== */
+    /* Firefox */
+    * {
+        scrollbar-width: auto;
+        scrollbar-color: #999999 #3c3c3c;
+    }
+
+    /* Chrome, Edge, and Safari */
+    *::-webkit-scrollbar {
+        width: 16px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: #3c3c3c;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background-color: #646464;
+        border-radius: 10px;
+        border: 3px solid #ffffff;
+    }
+
+.message_container {
+    background-color: rgb(47, 47, 47);
+    width: 50%;
+    border-radius: 1rem;
+    padding: 1rem;
+    text-align: left;
+    box-sizing: border-box;
+    margin-top: 1rem;
+    font-family: monospace;
+    font-size: 14px;
+    white-space: pre-wrap;       /* css-3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    overflow-wrap: break-word;
+}
+
+.message_container:nth-child(odd) {
+    align-self: flex-end;
+}
+
+.message_container:nth-child(even) {
+    align-self: flex-start;
+}
+
+#chatbox_empty {
+    padding: 0.5rem;
+}
