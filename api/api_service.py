@@ -9,7 +9,7 @@ import jwt
 import datetime
 from chatbot import Chatbot
 
-chatbot = Chatbot("bert-large-uncased-whole-word-masking-finetuned-squad")
+chatbot = Chatbot()
 
 UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "uploads")
@@ -121,6 +121,24 @@ def ask_question():
                     return jsonify({"error": str(e)}), 500
         else:
             return jsonify({"error": "Invalid data format"}), 400
+
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return jsonify({"error": "Unexpected error occurred"}), 500
+
+@app.route("/get_questions", methods=["GET"])
+def get_questions():
+    token = request.cookies.get("jwt_token")
+    
+    if not VerifyJWTtoken(token):
+        return jsonify({"error": "Invalid token"}), 401
+    
+    try:
+        with open(os.path.join(UPLOAD_FOLDER, session.get("filename", ''))) as file:
+            try:
+                return jsonify({"message": chatbot.GenerateQuestions(file.read())}), 200
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")

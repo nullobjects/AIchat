@@ -69,6 +69,20 @@ const SessionManager = {
             console.error("Unexpected error:", error);
             alert("Your question couldn't be submitted due to an unexpected error.");
         }
+    },
+
+    getQuestions: async function() {
+        try {
+            const response = await axios.get(this.url + "/get_questions", {
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+            });
+            return response.data.message
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            alert("We couldn't generate questions for you.");
+        }
     }
 }
 

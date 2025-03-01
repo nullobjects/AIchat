@@ -8,8 +8,10 @@ let currentId = 0;
 const RightContainer = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState<string>("");
-    const [generatingAnswer, setgeneratingAnswer] = useState<boolean>(false);
-    
+    const [generatingAnswer, setGeneratingAnswer] = useState<boolean>(false);
+    const [questions, setQuestions] = useState<string[]>([]);
+    const [generatingQuestions, setGeneratingQuestions] = useState<boolean>(false);
+
     const addMessage = (user: User, message: string) => {
         const msg: Message = {
             id: currentId,
@@ -47,8 +49,8 @@ const RightContainer = () => {
     };
 
     const getAnswer = async (question: string) => {
-        const answer: string = await SessionManager.askQuestion(inputText);
-        setgeneratingAnswer(false);
+        const answer: string = await SessionManager.askQuestion(question);
+        setGeneratingAnswer(false);
         addMessage({ name: "System" }, answer)
         const e = document.getElementById("input_inner") as HTMLTextAreaElement;
         if (e !== null) {
@@ -70,11 +72,40 @@ const RightContainer = () => {
                 if (inputEnter !== null) {
                     inputEnter.style.opacity = "0.2"
                 }
-                setgeneratingAnswer(true);
+                setGeneratingAnswer(true);
                 getAnswer(inputText)
             }
         }
     };
+
+    const handleGetQuestions = async () => {
+        setGeneratingQuestions(true)
+        const questions: string[] = await SessionManager.getQuestions();
+        setQuestions(questions)
+    };
+
+    const SelectRandomQuestion = async (idx: number) => {
+        setGeneratingQuestions(false)
+
+        const question = questions[idx];
+        addMessage({ name: "User" }, question);
+
+        const e = document.getElementById("input_inner") as HTMLTextAreaElement;
+        if (e !== null) {
+            e.style.height = "44px";
+            e.disabled = true;
+            const inputEnter = document.querySelector(
+                "#input_container > input:last-child"
+            ) as HTMLElement;
+            if (inputEnter !== null) {
+                inputEnter.style.opacity = "0.2"
+            }
+            setGeneratingAnswer(true);
+            getAnswer(question)
+        }
+
+        setQuestions([])
+    }
 
     return (
         <div id="Right">
@@ -91,21 +122,43 @@ const RightContainer = () => {
             </div>
 
             <div id="input_container">
-            <input type="image" src="images/question_mark.png" alt="Question Mark" />
-            <textarea
-                id="input_inner"
-                placeholder="Message AIChat"
-                value={inputText}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                disabled={true}
-            />
-            <input
-                type="image"
-                src="images/input_enter.png"
-                alt="Submit"
-                onClick={handleSubmit}
-            />
+                <div id="question_container">
+                    <input type="image" src="images/question_mark.png" alt="Question Mark" onClick={handleGetQuestions}/>
+                    
+                    {generatingQuestions && (
+                        <div id="question_tooltip">
+                            {questions.length === 0 ? (
+                                <div id="question_thinking">Thinking...</div>
+                            ) : (
+                                questions.map((question, index) => (
+                                    <input
+                                        type="button"
+                                        className="random_question"
+                                        key={index}
+                                        value={question}
+                                        onClick={() => SelectRandomQuestion(index)}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <textarea
+                    id="input_inner"
+                    placeholder="Message AIChat"
+                    value={inputText}
+                    onChange={handleChange}
+                    onKeyDown={handleKeyDown}
+                    disabled={true}
+                />
+                <input
+                    type="image"
+                    src="images/input_enter.png"
+                    alt="Submit"
+                    onClick={handleSubmit}
+                    id="submit_button"
+                />
             </div>
         </div>
     );
