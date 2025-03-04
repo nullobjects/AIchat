@@ -8,16 +8,10 @@ import shutil
 import jwt
 import datetime
 from chatbot import Chatbot
+from langchain.memory import ConversationBufferMemory
+from config import *
 
 chatbot = Chatbot()
-
-UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "uploads")
-
-JWT_SECRET_KEY = "NullObjects_Secret_Key_Demek"
-JWT_EXPIRATION_DELTA = timedelta(minutes=180)
-
-ALLOWED_EXTENSIONS = (".txt", ".docx", ".pdf")
 
 app = Flask(__name__)
 app.secret_key = JWT_SECRET_KEY
@@ -53,6 +47,8 @@ def VerifyJWTtoken(token):
 @app.route("/start_session", methods=["POST"])
 def start_session():
     session["session_id"] = str(uuid.uuid4())
+    if USE_LANGCHAIN:
+        session["memory"] = ConversationBufferMemory()
     token = GenerateJWTtoken(session["session_id"])
     session.modified = True
     response = make_response(jsonify({"message": "Session Started"}))
@@ -99,6 +95,10 @@ def upload():
         with open(filepath, "w") as file:
             file.write(content)
         session["filename"] = filename
+        if USE_LANGCHAIN:
+            doc_with_metadata = [{"text": content, "metadata": {"user_id": session["session_id"]}}]
+            chatbot.vector_store.add_documents(doc_with_metadata)
+            chatbot.vector_store.persist()
         return jsonify({"message": "File uploaded successfully", "filename": filename}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -116,7 +116,7 @@ def ask_question():
         if isinstance(question, str):
             with open(os.path.join(UPLOAD_FOLDER, session.get("filename", ''))) as file:
                 try:
-                    return jsonify({"message": chatbot.GenerateAnswer(question, file.read())}), 200
+                    return jsonify({"message": chatbot.GenerateAnswer(session, question, file.read())}), 200
                 except Exception as e:
                     return jsonify({"error": str(e)}), 500
         else:
@@ -136,7 +136,7 @@ def get_questions():
     try:
         with open(os.path.join(UPLOAD_FOLDER, session.get("filename", ''))) as file:
             try:
-                return jsonify({"message": chatbot.GenerateQuestions(file.read())}), 200
+                return jsonify({"message": chatbot.GenerateQuestions(session, file.read())}), 200
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 
