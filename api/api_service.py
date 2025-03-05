@@ -8,8 +8,9 @@ import shutil
 import jwt
 import datetime
 from chatbot import Chatbot
-from langchain.memory import ConversationBufferMemory
 from config import *
+if USE_LANGCHAIN:
+    from langgraph.checkpoint.memory import MemorySaver
 
 chatbot = Chatbot()
 
@@ -47,10 +48,9 @@ def VerifyJWTtoken(token):
 @app.route("/start_session", methods=["POST"])
 def start_session():
     session["session_id"] = str(uuid.uuid4())
-    if USE_LANGCHAIN:
-        session["memory"] = ConversationBufferMemory()
     token = GenerateJWTtoken(session["session_id"])
     session.modified = True
+
     response = make_response(jsonify({"message": "Session Started"}))
     response.set_cookie('jwt_token', token, httponly=True, secure=True)
     return response, 200
@@ -95,10 +95,6 @@ def upload():
         with open(filepath, "w") as file:
             file.write(content)
         session["filename"] = filename
-        if USE_LANGCHAIN:
-            doc_with_metadata = [{"text": content, "metadata": {"user_id": session["session_id"]}}]
-            chatbot.vector_store.add_documents(doc_with_metadata)
-            chatbot.vector_store.persist()
         return jsonify({"message": "File uploaded successfully", "filename": filename}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -106,18 +102,17 @@ def upload():
 @app.route("/ask_question", methods=["POST"])
 def ask_question():
     token = request.cookies.get("jwt_token")
-    
+
     if not VerifyJWTtoken(token):
         return jsonify({"error": "Invalid token"}), 401
-    
     try:
         question = request.data.decode('utf-8')
-
         if isinstance(question, str):
             with open(os.path.join(UPLOAD_FOLDER, session.get("filename", ''))) as file:
                 try:
-                    return jsonify({"message": chatbot.GenerateAnswer(session, question, file.read())}), 200
+                    return jsonify({"message": chatbot.GenerateAnswer(session, file.read(), question)}), 200
                 except Exception as e:
+                    print(str(e))
                     return jsonify({"error": str(e)}), 500
         else:
             return jsonify({"error": "Invalid data format"}), 400

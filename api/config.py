@@ -9,10 +9,10 @@ USE_LANGCHAIN = True
 MODEL_PROMPT = """
                    You are a helpful assitant called AIChat,
                    your job is to answer questions based off of this context: {context}.
-
+                   
                    Question:
-                   {quesiton}
-
+                   {question}
+                   
                    If the user asks anything that is not related to this context reply with the following message:
                    \"I'm sorry but i can't answer questions that are not related to the document.\".
                """
@@ -26,7 +26,7 @@ JWT_EXPIRATION_DELTA = timedelta(minutes=180)
 ALLOWED_EXTENSIONS = (".txt", ".docx", ".pdf")
 
 PERSISTENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-PERSISTENT_DIRECTORY = os.path.join(PERSISTENT_DIRECTORY, "uploads", "chroma_db")
+PERSISTENT_DIRECTORY = os.path.join(PERSISTENT_DIRECTORY, "uploads", "faiss")
 
 OPENAI_MODEL = "gpt-4o-mini"
 

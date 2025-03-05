@@ -1,29 +1,18 @@
-from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering, AutoModelForSeq2SeqLM
-import tensorflow as tf
-from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain.chains import create_history_aware_retriever
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
-from typing import List
 from config import *
+from typing import List
 
-def GetOrCreateVectorStore(persistent_directory, embedding_function):
-    try:
-        vector_store = FAISS(persist_directory=persistent_directory, embedding_function=embedding_function)
-    except Exception as e:
-        vector_store = FAISS.from_documents([], embedding_function=EMBEDDING_FUNCTION, persist_directory=PERSISTENT_DIRECTORY)
-    
-    return vector_store
+if USE_LANGCHAIN:
+    from .workflow import WorkFlow
+else:
+    from transformers import AutoTokenizer, TFAutoModelForQuestionAnswering, AutoModelForSeq2SeqLM
+    import tensorflow as tf
 
 class Chatbot:
     def __init__(self):
         if USE_LANGCHAIN:
             # Note: The Memory for the chatbot is stored per session
             # This way we don't create multiple instances of the model
-            self.model = ChatOpenAI(model=OPENAI_MODEL)
-            self.vector_store = GetOrCreateVectorStore(PERSISTENT_DIRECTORY, EMBEDDING_FUNCTION)
-            self.conversation_chain = ConversationChain.
+            self.workflow = WorkFlow()
         else:
             model_name = "bert-large-uncased-whole-word-masking-finetuned-squad"
             self.AnswerModel = {
@@ -37,24 +26,11 @@ class Chatbot:
                 "model": AutoModelForSeq2SeqLM.from_pretrained(model_name),
             }
 
-    def ChunkContext(context: str) -> List[str]: 
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 200,
-            chunk_overlap = 20
-        )
 
-        return text_splitter.create_documents([context])
-
-    def GetContextChunks(session, context: str):
-        if not session["context_chunks"]:
-            session["context_chunks"] = ChunkContext(context)
-        return session["context_chunks"]
-
-    def GenerateAnswer(self, session, question, context):
+    def GenerateAnswer(self, session, context, question) -> str:
         if USE_LANGCHAIN:
-            memory = session["memory"]
-            #prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
-
+            result = self.workflow.Run(session, context, question)
+            return result
         else:
             tokenizer = self.AnswerModel["tokenizer"]
             model = self.AnswerModel["model"]
@@ -78,9 +54,11 @@ class Chatbot:
 
             return answer
     
-    def GenerateQuestions(self, session, context):
+    def GenerateQuestions(self, session, context) -> List[str]:
         if USE_LANGCHAIN:
-            print("hello")
+            result = self.workflow.Run(session, context, "Generate 3 questions about this document without enums.")
+            cleaned_result = [line for line in result.splitlines() if line.strip()]
+            return cleaned_result
         else:
             tokenizer = self.QuestionsModel["tokenizer"]
             model = self.QuestionsModel["model"]
